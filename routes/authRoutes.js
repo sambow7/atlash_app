@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const verifyToken = require('../middleware/verify-token');
 
 const router = express.Router();
 
@@ -48,18 +49,5 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Middleware to verify JWT
-const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization');
-  if (!token) return res.status(401).json({ message: 'Access Denied' });
 
-  try {
-    const verified = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET);
-    req.user = verified;
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Invalid Token' });
-  }
-};
-
-module.exports = { router, verifyToken };
+module.exports = router;

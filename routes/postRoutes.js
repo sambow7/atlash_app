@@ -1,6 +1,6 @@
 const express = require('express');
 const Post = require('../models/Post');
-const { verifyToken } = require('./authRoutes');
+const verifyToken = require('../middleware/verify-token');
 
 const router = express.Router();
 
