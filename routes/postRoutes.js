@@ -1,5 +1,5 @@
 const express = require('express');
-const Post = require('../models/Post');
+const Post = require('../models/post');
 const verifyToken = require('../middleware/verify-token');
 
 const router = express.Router();
@@ -69,12 +69,13 @@ router.delete('/:id', verifyToken, async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
+    // Check if the logged-in user is the post author
     if (post.author.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
     await post.deleteOne();
-    res.json({ message: 'Post deleted' });
+    res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
