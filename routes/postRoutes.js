@@ -1,83 +1,59 @@
 const express = require('express');
-const Post = require('../models/post');
-const verifyToken = require('../middleware/verify-token');
-
+const fetch = require('node-fetch');
+const Post = require('../models/Post'); // Import Post model
 const router = express.Router();
 
-// Create a post (Protected)
-router.post('/', verifyToken, async (req, res) => {
+// API Key for Tomorrow.io
+const WEATHER_API_KEY = process.env.TOMORROW_IO_API_KEY;
+
+// Function to fetch weather data
+async function getWeatherData(latitude, longitude) {
   try {
-    const { title, content, location, latitude, longitude, weatherData } = req.body;
-    const newPost = new Post({ 
-      title, 
-      content, 
-      location, 
-      latitude, 
-      longitude, 
-      weatherData, 
-      author: req.user.id 
+    const response = await fetch(
+      `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${WEATHER_API_KEY}`
+    );
+    const data = await response.json();
+
+    if (data && data.data) {
+      return {
+        temperature: data.data.values.temperature,
+        conditions: data.data.values.weatherCode,
+        icon: data.data.values.weatherCode, // May want to map this to an emoji or an icon
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+}
+
+// 🛠️ Create a new post with optional weather data
+router.post('/', async (req, res) => {
+  try {
+    const { title, content, author, location, latitude, longitude } = req.body;
+
+    let weatherData = null;
+
+    // If latitude & longitude exist, fetch weather data
+    if (latitude && longitude) {
+      weatherData = await getWeatherData(latitude, longitude);
+    }
+
+    const newPost = new Post({
+      title,
+      content,
+      author,
+      location,
+      latitude,
+      longitude,
+      weatherData,
     });
+
     await newPost.save();
     res.status(201).json(newPost);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Get all posts
-router.get('/', async (req, res) => {
-  try {
-    const posts = await Post.find().populate('author', 'username');
-    res.json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Get single post by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id).populate('author', 'username');
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-    res.json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Update a post (Protected)
-router.put('/:id', verifyToken, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    if (post.author.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    Object.assign(post, req.body);
-    await post.save();
-    res.json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Delete a post (Protected)
-router.delete('/:id', verifyToken, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    // Check if the logged-in user is the post author
-    if (post.author.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    await post.deleteOne();
-    res.json({ message: 'Post deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Error creating post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
