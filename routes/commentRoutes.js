@@ -1,3 +1,5 @@
+// src/routes/commentRoutes.js
+
 const express = require('express');
 const Comment = require('../models/comment');
 const verifyToken = require('../middleware/verify-token');
