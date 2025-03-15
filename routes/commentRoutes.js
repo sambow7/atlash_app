@@ -1,5 +1,5 @@
 // src/routes/commentRoutes.js
-
+const Post = require('../models/Post');
 const express = require('express');
 const Comment = require('../models/comment');
 const verifyToken = require('../middleware/verify-token');
@@ -40,6 +40,9 @@ router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id);
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+     // Remove the comment reference from the post
+     await Post.findByIdAndUpdate(comment.postId, { $pull: { comments: comment._id } });
 
     // Check if the logged-in user is the comment author
     if (comment.author.toString() !== req.user.id) {
