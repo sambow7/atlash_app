@@ -74,6 +74,27 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
+// Get a single post by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'username')
+      .populate({
+        path: 'comments',
+        populate: { path: 'author', select: 'username' }
+      });
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    res.json(post);
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Update a post (PUT)
 router.put('/:id', verifyToken, async (req, res) => {
   try {

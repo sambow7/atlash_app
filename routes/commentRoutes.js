@@ -10,11 +10,18 @@ const router = express.Router();
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { postId, text } = req.body;
-    const newComment = new Comment({ postId, text, author: req.user.id });
-    await newComment.save();
-    res.status(201).json(newComment);
+    const comment = new Comment({ postId, text, author: req.user.id });
+
+    // Save comment
+    await comment.save();
+
+    // Update the corresponding post to include the new comment
+    await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
+
+    res.status(201).json(comment);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    console.error("Error creating comment:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
