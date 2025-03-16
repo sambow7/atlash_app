@@ -8,26 +8,85 @@ const verifyToken = require('../middleware/verify-token');
 
 // API Key for Tomorrow.io
 const WEATHER_API_KEY = process.env.TOMORROW_IO_API_KEY;
+console.log("🌍 Using Weather API Key:", process.env.TOMORROW_IO_API_KEY);
 
-// Function to fetch weather data
+// Weather Code Mapping based on Tomorrow.io documentation
+const weatherCodeMap = {
+  1000: "Clear",
+  1001: "Cloudy",
+  1100: "Mostly Clear",
+  1101: "Partly Cloudy",
+  1102: "Mostly Cloudy",
+  2000: "Fog",
+  2100: "Light Fog",
+  4000: "Drizzle",
+  4001: "Rain",
+  4200: "Light Rain",
+  4201: "Heavy Rain",
+  5000: "Snow",
+  5001: "Flurries",
+  5100: "Light Snow",
+  5101: "Heavy Snow",
+  6000: "Freezing Drizzle",
+  6001: "Freezing Rain",
+  6200: "Light Freezing Rain",
+  6201: "Heavy Freezing Rain",
+  7000: "Ice Pellets",
+  7101: "Heavy Ice Pellets",
+  7102: "Light Ice Pellets",
+  8000: "Thunderstorm",
+};
+
+// Weather Code to Icon Mapping
+const weatherIconMap = {
+  1000: "☀️",  // Clear
+  1001: "☁️",  // Cloudy
+  1100: "🌤",  // Mostly Clear
+  1101: "⛅",  // Partly Cloudy
+  1102: "🌥",  // Mostly Cloudy
+  2000: "🌫",  // Fog
+  2100: "🌁",  // Light Fog
+  4000: "🌧",  // Drizzle
+  4001: "🌧",  // Rain
+  4200: "🌦",  // Light Rain
+  4201: "⛈",  // Heavy Rain
+  5000: "❄️",  // Snow
+  5001: "🌨",  // Flurries
+  5100: "🌨",  // Light Snow
+  5101: "❄️",  // Heavy Snow
+  6000: "🌧❄️",  // Freezing Drizzle
+  6001: "🌧❄️",  // Freezing Rain
+  6200: "🌧❄️",  // Light Freezing Rain
+  6201: "🌧❄️",  // Heavy Freezing Rain
+  7000: "🌨❄️",  // Ice Pellets
+  7101: "🌨❄️",  // Heavy Ice Pellets
+  7102: "🌨❄️",  // Light Ice Pellets
+  8000: "⛈",  // Thunderstorm
+};
+
+// ✅ Modify getWeatherData() to include icon mapping
 async function getWeatherData(latitude, longitude) {
   try {
-    const response = await fetch(
-      `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${WEATHER_API_KEY}`
-    );
+    const apiUrl = `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${WEATHER_API_KEY}`;
+    console.log("🌍 Fetching Weather from URL:", apiUrl);
+
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("🌤 Raw Weather API Response:", JSON.stringify(data, null, 2)); // Debugging
+    console.log("🌤 Raw Weather API Response:", JSON.stringify(data, null, 2));
 
     if (data && data.data && data.data.values) {
+      // Extract weather condition code
+      const weatherCode = data.data.values.weatherCode;
+
       return {
         temperature: data.data.values.temperature,
-        conditions: data.data.values.weatherCode, // Ensure this matches expected values
-        icon: data.data.values.weatherCode, // Can be mapped to an emoji
+        conditions: weatherCodeMap[weatherCode] || "Unknown",
+        icon: weatherIconMap[weatherCode] || "❓",  // ✅ Map icon to emoji
       };
     } else {
       console.warn("⚠️ Unexpected API response structure:", data);
@@ -150,6 +209,29 @@ router.delete('/:id', verifyToken, async (req, res) => {
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Error deleting post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Like a post
+router.post('/:id/like', verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const userId = req.user.id;
+    const hasLiked = post.likes.includes(userId);
+
+    if (hasLiked) {
+      post.likes = post.likes.filter(id => id !== userId);
+    } else {
+      post.likes.push(userId);
+    }
+
+    await post.save();
+    res.json(post);
+  } catch (error) {
+    console.error('Error liking post:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
