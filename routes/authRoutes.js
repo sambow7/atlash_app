@@ -63,4 +63,30 @@ router.get('/me', verifyToken, async (req, res) => {
 });
 
 
+// Update User Profile
+router.put('/update-profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, bio, profilePicture } = req.body;
+ 
+    // Find the user by ID
+    let user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+ 
+    // Update user fields
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.bio = bio || user.bio;
+    user.profilePicture = profilePicture || user.profilePicture;
+ 
+    // Save updated user
+    await user.save();
+ 
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 module.exports = router;
