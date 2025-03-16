@@ -15,17 +15,26 @@ async function getWeatherData(latitude, longitude) {
     const response = await fetch(
       `https://api.tomorrow.io/v4/weather/realtime?location=${latitude},${longitude}&apikey=${WEATHER_API_KEY}`
     );
-    const data = await response.json();
 
-    if (data && data.data) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("🌤 Raw Weather API Response:", JSON.stringify(data, null, 2)); // Debugging
+
+    if (data && data.data && data.data.values) {
       return {
         temperature: data.data.values.temperature,
-        conditions: data.data.values.weatherCode,
-        icon: data.data.values.weatherCode, // May want to map this to an emoji or an icon
+        conditions: data.data.values.weatherCode, // Ensure this matches expected values
+        icon: data.data.values.weatherCode, // Can be mapped to an emoji
       };
+    } else {
+      console.warn("⚠️ Unexpected API response structure:", data);
+      return null;
     }
   } catch (error) {
-    console.error('Error fetching weather data:', error);
+    console.error('❌ Error fetching weather data:', error);
     return null;
   }
 }
@@ -47,12 +56,18 @@ router.post('/', verifyToken, async (req, res) => {
     console.log("Request Body:", req.body); // Debugging line
     console.log("Authenticated User ID:", req.user?.id); // Debugging line
 
-    const { title, content, location, latitude, longitude } = req.body;
-    let weatherData = null;
+    let { title, content, location, latitude, longitude } = req.body;
+    
+    if (!latitude || !longitude) {
+      console.warn("⚠️ Latitude/Longitude missing - Weather data will NOT be fetched!");
+    } else {
+      console.log(`📍 Fetching weather for lat: ${latitude}, lon: ${longitude}`);
+    }
 
-    // Fetch weather data if latitude & longitude are provided
+    let weatherData = null;
     if (latitude && longitude) {
       weatherData = await getWeatherData(latitude, longitude);
+      console.log("🌤 Weather Data Fetched:", weatherData);
     }
 
     // Ensure author field is set using req.user.id
@@ -63,7 +78,7 @@ router.post('/', verifyToken, async (req, res) => {
       latitude,
       longitude,
       weatherData,
-      author: req.user.id,  // Fix: Assign author from authenticated user
+      author: req.user.id,
     });
 
     await newPost.save();
@@ -74,19 +89,20 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// Get a single post by ID
+// Get a single post by ID and populate comments
 router.get('/:id', async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate('author', 'username')
       .populate({
         path: 'comments',
-        populate: { path: 'author', select: 'username' }
+        populate: { path: 'author', select: 'username' } // ✅ This ensures author details are included
       });
 
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
+    
     res.json(post);
   } catch (error) {
     console.error('Error fetching post:', error);
