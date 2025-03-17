@@ -1,5 +1,3 @@
-// src/routes/postRoutes.js
-
 const express = require('express');
 const fetch = require('node-fetch');
 const Post = require('../models/Post'); // Import Post model
@@ -115,7 +113,7 @@ router.post('/', verifyToken, async (req, res) => {
     console.log("Request Body:", req.body); // Debugging line
     console.log("Authenticated User ID:", req.user?.id); // Debugging line
 
-    let { title, content, location, latitude, longitude } = req.body;
+    let { title, content, location, latitude, longitude, locationUrl } = req.body;
     
     if (!latitude || !longitude) {
       console.warn("⚠️ Latitude/Longitude missing - Weather data will NOT be fetched!");
@@ -134,6 +132,7 @@ router.post('/', verifyToken, async (req, res) => {
       title,
       content,
       location,
+      locationUrl, // ✅ Add locationUrl
       latitude,
       longitude,
       weatherData,

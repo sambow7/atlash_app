@@ -10,7 +10,6 @@ const verifyToken = require('./middleware/verify-token');
 // Middleware
 const app = express();
 
-
 connectDB();
 
 app.use(express.json());
@@ -26,11 +25,13 @@ mongoose.connect(process.env.MONGODB_URI, {
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const profileRoutes = require('./routes/profileRoutes'); // Added profileRoutes import
 
 //ROUTES
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/profile', profileRoutes); // Added profileRoutes to the API
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
