@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js -e css,ejs,js,json"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.9",
+    "react-helmet-async": "^2.0.5",
     "streamifier": "^0.1.1"
   }
 }
