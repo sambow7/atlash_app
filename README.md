@@ -10,7 +10,7 @@ The backend for **Atlash**, a MERN stack travel blog app. This Express server ha
 - **Database:** MongoDB (Atlas)
 - **Authentication:** JWT, bcrypt
 - **File Storage:** Cloudinary
-- **Weather API:** OpenWeather API
+- **Weather API:** Tomorrow.io API
 - **Deployment:** Heroku
 
 ## 🚀 Features
