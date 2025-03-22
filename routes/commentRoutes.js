@@ -1,7 +1,7 @@
 // src/routes/commentRoutes.js
 const express = require('express');
 const Post = require('../models/Post');
-const Comment = require('../models/comment');
+const Comment = require('../models/Comment');
 const verifyToken = require('../middleware/verify-token');
 
 const router = express.Router();
