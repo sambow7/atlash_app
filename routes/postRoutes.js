@@ -1,7 +1,7 @@
 const express = require('express');
+const router = express.Router();
 const fetch = require('node-fetch');
 const Post = require('../models/Post');
-const router = express.Router();
 const verifyToken = require('../middleware/verify-token'); 
 
 // API Key for Tomorrow.io
