@@ -8,8 +8,6 @@ const User = require("../models/user");
 
 const upload = multer({ storage: multer.memoryStorage() }); // Store file in memory before upload
 
-
-// Upload Profile Picture
 // Apply verifyToken middleware to extract user ID
 router.post("/upload", verifyToken, upload.single("profilePic"), async (req, res) => {
     try {

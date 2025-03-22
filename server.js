@@ -15,11 +15,9 @@ connectDB();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGODB_URI, {
-
-})
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.error(err));
+mongoose.connect(process.env.MONGODB_URI, {})
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error(err));
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
