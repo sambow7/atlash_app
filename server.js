@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGODB_URI, {})
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
-const commentRoutes = require('./routes/commentRoutes');
+const commentRoutes = require('./routes/commentRoutes'); // Confirmed commentRoutes import
 const profileRoutes = require('./routes/profileRoutes'); // Added profileRoutes import
 
 //ROUTES
