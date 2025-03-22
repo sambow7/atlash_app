@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const streamifier = require("streamifier");
 const cloudinary = require("../configs/cloudinary");
-const User = require("../models/user");
+const User = require("../models/User");
 const verifyToken = require("../middleware/verify-token");
 
 const upload = multer({ storage: multer.memoryStorage() }); // Store file in memory before upload
